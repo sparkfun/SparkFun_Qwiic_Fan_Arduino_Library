@@ -24,7 +24,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "SparkFun_Qwiic_PC_Fan_Library.h"
+#include "SparkFun_Qwiic_Fan_Arduino_Library.h"
 #include "Arduino.h"
 
 //Constructor
@@ -84,9 +84,14 @@ bool PCFan::setI2CAddress(uint8_t newAddress)
   
 }
 
-// Set fan speed in RPM (PI controller setpoint)
+// Set fan speed in RPM (PI controller setpoint) auto-enables the PI controller
 bool PCFan::setFanSpeed(uint16_t RPM)
 {
+  if(piDisabled) //If the PI controller is disabled, we need to enable it
+  {
+    if(enablePI() == 0) return (false);
+    piDisabled = false; //Remember this status
+  } 
   _i2cPort->beginTransmission((uint8_t)_deviceAddress);
   _i2cPort->write(SETPOINT_RPM);             
   _i2cPort->write(highByte(RPM));
@@ -135,14 +140,25 @@ uint16_t PCFan::getFanSpeed()
 }
 
 // Set Kp and Ki parameters for PI controller
-bool PCFan::setPIGain(int16_t kp, int16_t ki)
+bool PCFan::setPIGain(float kp, float ki)
 {
+  // We get passed the paramters as floats, for the user's convenience
+  // But we treat them as fixed-decimal int16s so we need to do some 
+  // quick maths
+  kp = constrain(kp, -327.68, 327.67);
+  ki = constrain(ki, -327.68, 327.67);
+  kp *= 100;
+  ki *= 100;
+  // static_cast should just truncate the floats
+  int16_t kpInt = static_cast<int16_t>(kp);
+  int16_t kiInt = static_cast<int16_t>(ki);
+
   _i2cPort->beginTransmission((uint8_t)_deviceAddress); 
   _i2cPort->write(KP_VALUE);  
-  _i2cPort->write(kp >> 8);
-  _i2cPort->write(kp);                
-  _i2cPort->write(ki >> 8);
-  _i2cPort->write(ki);  
+  _i2cPort->write(kpInt >> 8);
+  _i2cPort->write(kpInt);                
+  _i2cPort->write(kiInt >> 8);
+  _i2cPort->write(kiInt);  
   if (_i2cPort->endTransmission() != 0)
   {
     return (false); //Device failed to ack
@@ -196,6 +212,7 @@ bool PCFan::disablePI()
   {
     return (false); //Device failed to ack
   } 
+  piDisabled = true; //Remember this status
   return (true);
 }
 
@@ -209,6 +226,7 @@ bool PCFan::enablePI()
   {
     return (false); //Device failed to ack
   } 
+  piDisabled = false; //Remember this status
   return (true);
 }
 
@@ -246,9 +264,10 @@ uint16_t PCFan::getPIOut()
 // Set the fan speed as a percentage of full speed (Disables the PI controller)
 bool PCFan::setPercentThrottle(uint8_t throttle)
 {
-  if(disablePI() == 0)
+  if(!piDisabled) //If the PI controller is enabled, it needs to be disabled
   {
-    return (false);
+    if(disablePI() == 0) return (false);
+    piDisabled = true; //Remember this status
   }
   _i2cPort->beginTransmission((uint8_t)_deviceAddress); 
   _i2cPort->write(PROPORTIONAL_THROTTLE);              

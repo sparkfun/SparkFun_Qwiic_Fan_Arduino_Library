@@ -24,8 +24,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _SPARKFUN_QWIIC_PC_FAN_LIBRARY_H
-#define _SPARKFUN_QWIIC_PC_FAN_LIBRARY_H
+#ifndef _SPARKFUN_QWIIC_FAN_ARDUINO_LIBRARY_H
+#define _SPARKFUN_QWIIC_FAN_ARDUINO_LIBRARY_H
 #include "Arduino.h"
 #include "Wire.h"
 
@@ -55,10 +55,10 @@ class PCFan {
     bool begin(TwoWire &wirePort = Wire, uint8_t deviceAddress = DEFAULT_WIRE_ADDR);
     bool isConnected();                         // Checks if board ACK's the I²C request
 	  bool setI2CAddress(uint8_t newAddress);     // Change the I²C address to newAddress
-    bool setFanSpeed(uint16_t RPM);             // Set fan speed in RPM (setpoint of PI controller)
+    bool setFanSpeed(uint16_t RPM);             // Set fan speed in RPM (setpoint of PI controller) Enables the PI controller
     uint16_t getSetpoint();                     // Get current setpoint of PI controller
     uint16_t getFanSpeed();                     // Get current actual fan speed from tachometer
-    bool setPIGain(int16_t kp, int16_t ki);     // Set Kp and Ki parameters of PI controller
+    bool setPIGain(float kp, float ki);         // Set Kp and Ki parameters of PI controller (-327.68 to 327.67)
     float getPGain();                           // Get current Kp of PI controller
     float getIGain();                           // Get current Ki of PI controller
     bool disablePI();                           // Disable PI controller and set fan speed using Percent Throttle instead
@@ -80,6 +80,7 @@ class PCFan {
   private:
     TwoWire *_i2cPort;
 	  uint8_t _deviceAddress;
+    bool piDisabled = false;
 };
 
 #endif
