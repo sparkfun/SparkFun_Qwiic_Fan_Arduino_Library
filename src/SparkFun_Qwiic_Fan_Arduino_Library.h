@@ -47,6 +47,7 @@
                                    // Whem PI Controller is Disabled the PWM Width Cycle is set to this register's inverse
 #define TRIMMER_SCALE 0x0F         // Trimpot values are multiplied by this number. Probably only useful in edge cases. 2.0 (20) by default.
 #define TRIMMER_DISABLE 0x10       // Stop reading trimpot ADCs and only use values written to the Kx_VALUE register by the I²C Controller (0xFF for Disable)
+#define FIRMWARE_VERSION 0x11      // Firmware Version
 
 class PCFan {
   public:
@@ -67,6 +68,7 @@ class PCFan {
     uint16_t getPIOut();                        // Get last output of PI Controller (20-320)
     bool setPercentThrottle(uint8_t throttle);  // Set fan speed as a percentage of full speed. Disables the PI controller.
     uint8_t getPercentThrottle();               // Get current fan speed as a percentage of full speed (PIOut x (100/320))
+    uint8_t getFirmwareVersion();               // Get the firmware version
 
     /*THE FOLLOWING FUNCTIONS APPLY ONLY TO QWIIC PC FAN CONTROLLER */
 

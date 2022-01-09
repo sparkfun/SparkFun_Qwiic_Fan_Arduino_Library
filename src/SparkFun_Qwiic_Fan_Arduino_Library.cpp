@@ -382,3 +382,40 @@ bool PCFan::enableTrimmer()
   } 
   return (true);
 }
+
+// Get Firmware Version
+uint8_t PCFan::getFirmwareVersion()
+{
+  uint8_t fw = 0;
+  _i2cPort->beginTransmission((uint8_t)_deviceAddress); 
+  _i2cPort->write(FIRMWARE_VERSION);              
+  if (_i2cPort->endTransmission() != 0)
+  {
+    return (0); //Device failed to ack
+  } 
+  _i2cPort->requestFrom((uint8_t)_deviceAddress, 1);
+  fw = _i2cPort->read();
+  // Version 10 firmware doesn't support this command
+  // Luckily, it should return its I²C Address if asked for an 
+  // out-of-range value. If the device reports a value that 
+  // matches its current address, we try changing the address to 
+  // see if it follows. If it does, we report the fw version as
+  // 10
+  if(fw == (uint8_t)_deviceAddress){
+    uint8_t testAddress = (uint8_t)_deviceAddress+1;
+    uint8_t oldAddress = (uint8_t)_deviceAddress;
+    setI2CAddress(testAddress); // Increment Address
+    delay(500);
+
+    _i2cPort->beginTransmission(testAddress); // Get FW Version
+    _i2cPort->write(FIRMWARE_VERSION);              
+    _i2cPort->requestFrom(testAddress, 1);
+    fw = _i2cPort->read();
+    if(fw == testAddress){ // Check if the "fw" value followed
+      fw = 10;
+    }
+    delay(500);
+    setI2CAddress(oldAddress); // Put the address back where we found it
+  }
+  return fw;
+}
