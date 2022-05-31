@@ -5,7 +5,7 @@ SparkFun Qwiic Fan Arduino Library
 
 [*SparkX Qwiic Blower Fan (SPX-18561)*](https://www.sparkfun.com/products/18561)
 
-![SparkX Qwiic PC Fan Controller]()
+![SparkX Qwiic PC Fan Controller](https://cdn.sparkfun.com//assets/parts/1/8/0/3/2/18570-Qwiic_PC_Fan_Controller-01.jpg)
 
 [*SparkX Qwiic PC Fan Controller (SPX-18570)*](https://www.sparkfun.com/products/18570)
 
